@@ -27,6 +27,7 @@ import android.content.Context;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 
+import com.morgoo.droidplugin.hook.binder.IAlarmManagerBinderHook;
 import com.morgoo.droidplugin.hook.binder.IAppOpsServiceBinderHook;
 import com.morgoo.droidplugin.hook.binder.IAudioServiceBinderHook;
 import com.morgoo.droidplugin.hook.binder.IClipboardBinderHook;
@@ -179,6 +180,10 @@ public class HookFactory {
 
         if (VERSION.SDK_INT >= VERSION_CODES.M) {
             installHook(new IAppOpsServiceBinderHook(context), classLoader);
+        }
+
+        if (VERSION.SDK_INT > VERSION_CODES.M) {
+            installHook(new IAlarmManagerBinderHook(context), classLoader);
         }
 
         installHook(new IPackageManagerHook(context), classLoader);

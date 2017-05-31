@@ -29,16 +29,19 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.InstrumentationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.PermissionGroupInfo;
 import android.content.pm.PermissionInfo;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.content.pm.Signature;
 import android.os.Build;
+import android.os.UserManager;
 import android.text.TextUtils;
 
 import com.morgoo.droidplugin.core.PluginDirHelper;
 import com.morgoo.droidplugin.reflect.FieldUtils;
+import com.morgoo.droidplugin.reflect.MethodUtils;
 import com.morgoo.helper.ComponentNameComparator;
 
 import java.io.File;
@@ -361,6 +364,18 @@ public class PluginPackageParser {
     }
 
     public PackageInfo getPackageInfo(int flags) throws Exception {
+        // JC: Add for getPackageInfo return error result in Nougat @{
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.M) {
+            UserManager userManager = (UserManager) mHostContext.getSystemService(Context.USER_SERVICE);
+            boolean isUserUnlockingOrUnlocked = (boolean) MethodUtils.invokeMethod(userManager, "isUserUnlockingOrUnlocked", new Object[]{0});
+            if (isUserUnlockingOrUnlocked) {
+                flags |= PackageManager.MATCH_DIRECT_BOOT_AWARE | PackageManager.MATCH_DIRECT_BOOT_UNAWARE;
+            } else {
+                flags |= PackageManager.MATCH_DIRECT_BOOT_AWARE;
+            }
+
+        }
+        // @}
         PackageInfo packageInfo = mParser.generatePackageInfo(mHostPackageInfo.gids, flags, mPluginFile.lastModified(), mPluginFile.lastModified(), new HashSet<String>(getRequestedPermissions()));
         fixPackageInfo(packageInfo);
         return packageInfo;
